@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telecom Network Monitoring Dashboard</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Telecom Network Monitoring Dashboard</h1>
+            <p>Real-time Network Operations Center (NOC) Monitoring</p>
+        </header>
+
+        <div class="dashboard">
+            <!-- Base Stations Section -->
+            <section class="panel base-stations">
+                <h2>Base Station Status</h2>
+                <div id="baseStations" class="data-grid">
+                    <p>Loading base stations...</p>
+                </div>
+            </section>
+
+            <!-- Network Metrics Section -->
+            <section class="panel network-metrics">
+                <h2>Network Metrics</h2>
+                <div id="networkMetrics" class="data-grid">
+                    <p>Loading network metrics...</p>
+                </div>
+            </section>
+
+            <!-- Alerts Section -->
+            <section class="panel alerts">
+                <h2>Active Alerts</h2>
+                <div id="alerts" class="data-grid">
+                    <p>Loading alerts...</p>
+                </div>
+            </section>
+
+            <!-- Service Status Section -->
+            <section class="panel service-status">
+                <h2>Service Status</h2>
+                <div id="serviceStatus" class="data-grid">
+                    <p>Loading service status...</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const backendAPI = '<%= backendAPI %>';
+
+        // Fetch and display base stations
+        async function loadBaseStations() {
+            try {
+                const response = await fetch('/api/proxy/base-stations');
+                const data = await response.json();
+                const container = document.getElementById('baseStations');
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<p>No base stations available</p>';
+                    return;
+                }
+                
+                container.innerHTML = data.map(bs => `
+                    <div class="item status-${bs.status}">
+                        <strong>${bs.name}</strong><br>
+                        Location: ${bs.location}<br>
+                        Status: <span class="badge ${bs.status}">${bs.status}</span><br>
+                        Capacity: ${bs.capacity}%
+                    </div>
+                `).join('');
+            } catch (err) {
+                document.getElementById('baseStations').innerHTML = '<p>Error loading base stations</p>';
+            }
+        }
+
+        // Fetch and display network metrics
+        async function loadNetworkMetrics() {
+            try {
+                const response = await fetch('/api/proxy/network-metrics');
+                const data = await response.json();
+                const container = document.getElementById('networkMetrics');
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<p>No network metrics available</p>';
+                    return;
+                }
+                
+                container.innerHTML = data.slice(0, 10).map(metric => `
+                    <div class="item">
+                        <strong>Metric: ${metric.metric_name}</strong><br>
+                        Value: ${metric.metric_value}<br>
+                        Station: ${metric.base_station_id}<br>
+                        Time: ${new Date(metric.recorded_at).toLocaleString()}
+                    </div>
+                `).join('');
+            } catch (err) {
+                document.getElementById('networkMetrics').innerHTML = '<p>Error loading metrics</p>';
+            }
+        }
+
+        // Fetch and display alerts
+        async function loadAlerts() {
+            try {
+                const response = await fetch('/api/proxy/alerts');
+                const data = await response.json();
+                const container = document.getElementById('alerts');
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<p>No active alerts</p>';
+                    return;
+                }
+                
+                container.innerHTML = data.map(alert => `
+                    <div class="item alert-${alert.severity}">
+                        <strong>Alert - ${alert.severity.toUpperCase()}</strong><br>
+                        Station: ${alert.base_station_id}<br>
+                        Message: ${alert.message}<br>
+                        Time: ${new Date(alert.created_at).toLocaleString()}
+                    </div>
+                `).join('');
+            } catch (err) {
+                document.getElementById('alerts').innerHTML = '<p>Error loading alerts</p>';
+            }
+        }
+
+        // Fetch and display service status
+        async function loadServiceStatus() {
+            try {
+                const response = await fetch('/api/proxy/service-status');
+                const data = await response.json();
+                const container = document.getElementById('serviceStatus');
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<p>No service status available</p>';
+                    return;
+                }
+                
+                container.innerHTML = data.map(service => `
+                    <div class="item status-${service.status}">
+                        <strong>${service.service_name}</strong><br>
+                        Status: <span class="badge ${service.status}">${service.status}</span><br>
+                        Availability: ${service.availability}%
+                    </div>
+                `).join('');
+            } catch (err) {
+                document.getElementById('serviceStatus').innerHTML = '<p>Error loading service status</p>';
+            }
+        }
+
+        // Load all data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBaseStations();
+            loadNetworkMetrics();
+            loadAlerts();
+            loadServiceStatus();
+
+            // Refresh data every 10 seconds
+            setInterval(() => {
+                loadBaseStations();
+                loadNetworkMetrics();
+                loadAlerts();
+                loadServiceStatus();
+            }, 10000);
+        });
+    </script>
+</body>
+</html>

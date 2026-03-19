@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Service
+  postgres:
+    image: postgres:15-alpine
+    container_name: telecom_postgres
+    environment:
+      POSTGRES_USER: telecom_user
+      POSTGRES_PASSWORD: telecom_password
+      POSTGRES_DB: telecom_monitoring
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U telecom_user -d telecom_monitoring"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - telecom_network
+
+  # Backend API Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: telecom_backend
+    environment:
+      DB_USER: telecom_user
+      DB_PASSWORD: telecom_password
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: telecom_monitoring
+      PORT: 5000
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - telecom_network
+    restart: unless-stopped
+
+  # Frontend Dashboard Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: telecom_frontend
+    environment:
+      BACKEND_API_URL: http://backend:5000
+      PORT: 3000
+    ports:
+      - "3001:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - telecom_network
+    restart: unless-stopped
+
+  # Data Updater Service
+  data-updater:
+    build:
+      context: .
+      dockerfile: Dockerfile.updater
+    container_name: telecom_data_updater
+    environment:
+      DB_USER: telecom_user
+      DB_PASSWORD: telecom_password
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: telecom_monitoring
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - telecom_network
+    # Run simulation continuously
+    command: ["--action", "simulate", "--duration", "3600"]
+    restart: unless-stopped
+
+networks:
+  telecom_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
