@@ -8,18 +8,29 @@ This is a containerized Three-Tier Telecom Network Monitoring Dashboard that dem
 ### System Components
 1. **Frontend** (Node.js + Express) - Port 3000
    - Monitoring dashboard UI
-   - Communicates with backend API
+   - Communicates with backend API through Nginx
    - Displays real-time network metrics and alerts
+   - Adds `X-Frontend-Container` response header so the UI can show which frontend container served the request
 
-2. **Backend** (Node.js + Express) - Port 5000
+2. **Nginx** (Reverse Proxy / Load Balancer) - Port 80
+   - Entry point for browser traffic
+   - Routes `/` to frontend service
+   - Routes `/api/` to backend service
+   - Supports load balancing when services are scaled
+
+3. **Backend** (Node.js + Express) - Port 5000 (internal)
    - RESTful API server
    - Business logic and data processing
    - Interfaces with PostgreSQL database
 
-3. **Database** (PostgreSQL 15) - Port 5432
+4. **Database** (PostgreSQL 15) - Port 5432 (internal)
    - Stores all monitored data
    - Network metrics and alerts
    - Service status and base station information
+
+5. **Data Updater** (Python)
+   - Simulates telecom data continuously
+   - Writes metrics and alerts to PostgreSQL
 
 ## Getting Started
 
@@ -40,9 +51,9 @@ docker-compose up -d
 docker-compose logs -f
 
 # Access services
-# Frontend Dashboard: http://localhost:3000
-# Backend API: http://localhost:5000
-# Database: localhost:5432
+# Dashboard via Nginx (recommended): http://localhost
+# Frontend direct (debug): http://localhost:3001
+# Health check (frontend): http://localhost/health
 ```
 
 ### Stopping Services
@@ -57,7 +68,7 @@ docker-compose down -v
 ## Project File Structure
 ```
 Telco_Project/
-├── frontend/                 # Next.js Frontend Dashboard
+├── frontend/                 # Express + EJS Frontend Dashboard
 │   ├── server.js            # Express server
 │   ├── package.json
 │   ├── Dockerfile
@@ -69,11 +80,25 @@ Telco_Project/
 │   ├── server.js            # Express API server
 │   ├── package.json
 │   └── Dockerfile
+├── nginx/                    # Reverse proxy / load balancer
+│   └── nginx.conf           # Routing and upstream config
 ├── database/                 # PostgreSQL Database
 │   └── init.sql             # Database initialization script
+├── Dockerfile.updater        # Data updater image
+├── update_data.py            # Data simulation script
 ├── docker-compose.yml       # Docker Compose orchestration
 └── README.md               # This file
 ```
+
+## Request Flow (Updated Architecture)
+
+1. Browser sends request to **Nginx** (`http://localhost`).
+2. Nginx forwards dashboard/UI requests to **frontend**.
+3. Frontend requests `/api/proxy/*`, which Nginx routes to **backend** (`/api/*`).
+4. Backend reads/writes data in **PostgreSQL**.
+5. **Data Updater** continuously inserts simulated telecom metrics.
+
+The dashboard header now shows the current frontend container ID. When frontend replicas are scaled behind Nginx, this helps demonstrate load balancing by showing which container handled responses.
 
 ## Backend API Endpoints
 
@@ -160,6 +185,7 @@ docker ps
 ```bash
 docker-compose logs frontend
 docker-compose logs backend
+docker-compose logs nginx
 docker-compose logs postgres
 ```
 
@@ -172,6 +198,15 @@ docker-compose exec postgres psql -U telecom_user -d telecom_monitoring
 ### Rebuild containers
 ```bash
 docker-compose build --no-cache
+```
+
+### Load balancing demo (frontend container visibility)
+```bash
+# Scale frontend replicas
+docker compose up -d --scale frontend=3
+
+# Open dashboard and refresh multiple times
+# The "Served by container" badge should change between container IDs
 ```
 
 ## Key Metrics Monitored

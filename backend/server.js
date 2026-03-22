@@ -2,6 +2,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const os = require('os');
 require('dotenv').config();
 
 const app = express();
@@ -21,7 +22,10 @@ const pool = new Pool({
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'Backend API is running' });
+  res.json({
+    status: 'Backend API is running',
+    instance: os.hostname()
+  });
 });
 
 // Get all base stations

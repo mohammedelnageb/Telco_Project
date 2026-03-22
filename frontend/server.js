@@ -1,12 +1,20 @@
 const express = require('express');
 const path = require('path');
+const os = require('os');
 require('dotenv').config();
 
 const app = express();
+const containerId = process.env.HOSTNAME || os.hostname();
 
 // Middleware
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
+
+// Expose the container handling each request (useful for load-balancing demos)
+app.use((req, res, next) => {
+  res.setHeader('X-Frontend-Container', containerId);
+  next();
+});
 
 // Set view engine
 app.set('view engine', 'ejs');
@@ -17,12 +25,15 @@ const backendAPI = process.env.BACKEND_API_URL || 'http://backend:5000';
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'Frontend is running' });
+  res.json({ status: 'Frontend is running', container: containerId });
 });
 
 // Main dashboard
 app.get('/', (req, res) => {
-  res.render('dashboard', { backendAPI });
+  res.render('dashboard', {
+    backendAPI,
+    frontendContainer: containerId,
+  });
 });
 
 // API proxy endpoints (for CORS compatibility)

@@ -11,6 +11,10 @@
         <header class="header">
             <h1>Telecom Network Monitoring Dashboard</h1>
             <p>Real-time Network Operations Center (NOC) Monitoring</p>
+            <div class="lb-indicator">
+                <span class="lb-label">Served by container:</span>
+                <span id="frontendContainer" class="lb-container"><%= frontendContainer %></span>
+            </div>
         </header>
 
         <div class="dashboard">
@@ -55,6 +59,7 @@
         async function loadBaseStations() {
             try {
                 const response = await fetch('/api/proxy/base-stations');
+                updateContainerFromResponse(response);
                 const data = await response.json();
                 const container = document.getElementById('baseStations');
                 
@@ -80,6 +85,7 @@
         async function loadNetworkMetrics() {
             try {
                 const response = await fetch('/api/proxy/network-metrics');
+                updateContainerFromResponse(response);
                 const data = await response.json();
                 const container = document.getElementById('networkMetrics');
                 
@@ -105,6 +111,7 @@
         async function loadAlerts() {
             try {
                 const response = await fetch('/api/proxy/alerts');
+                updateContainerFromResponse(response);
                 const data = await response.json();
                 const container = document.getElementById('alerts');
                 
@@ -130,6 +137,7 @@
         async function loadServiceStatus() {
             try {
                 const response = await fetch('/api/proxy/service-status');
+                updateContainerFromResponse(response);
                 const data = await response.json();
                 const container = document.getElementById('serviceStatus');
                 
@@ -148,6 +156,14 @@
             } catch (err) {
                 document.getElementById('serviceStatus').innerHTML = '<p>Error loading service status</p>';
             }
+        }
+
+        function updateContainerFromResponse(response) {
+            const servingContainer = response.headers.get('X-Frontend-Container');
+            if (!servingContainer) return;
+
+            const containerBadge = document.getElementById('frontendContainer');
+            containerBadge.textContent = servingContainer;
         }
 
         // Load all data on page load
