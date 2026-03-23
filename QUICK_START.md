@@ -11,17 +11,18 @@
 cd Telco_Project
 
 # Start everything
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 2. Access the Dashboard
-- Open browser: **http://localhost:3000**
+- Open browser (recommended): **http://localhost**
+- Optional direct frontend (debug): **http://localhost:3001**
 - See monitoring dashboard!
 
 ### 3. Check API
 ```bash
 # Test API
-curl http://localhost:5000/api/health
+curl http://localhost/api/health
 ```
 
 ---
@@ -30,12 +31,12 @@ curl http://localhost:5000/api/health
 
 ```bash
 # Check container status
-docker-compose ps
+docker compose ps
 
-# Should show 3 containers: frontend, backend, postgres (all Up)
+# Should show nginx, frontend, backend, postgres, data-updater (all Up/healthy)
 
 # View logs
-docker-compose logs --tail=20
+docker compose logs --tail=20
 
 # Should show successful connections
 ```
@@ -48,27 +49,28 @@ docker-compose logs --tail=20
 
 | Service | URL | Purpose |
 |---------|-----|---------|
-| **Frontend** | http://localhost:3000 | Monitoring Dashboard |
-| **Backend** | http://localhost:5000/api | REST API |
+| **Dashboard (via Nginx)** | http://localhost | Monitoring Dashboard |
+| **Frontend (direct debug)** | http://localhost:3001 | Frontend container direct access |
+| **Backend API (via Nginx)** | http://localhost/api | REST API |
 | **Database** | localhost:5432 | PostgreSQL |
 
 ### Common API Calls
 
 ```bash
 # Get base stations
-curl http://localhost:5000/api/base-stations
+curl http://localhost/api/base-stations
 
 # Get alerts
-curl http://localhost:5000/api/alerts
+curl http://localhost/api/alerts
 
 # Get metrics
-curl http://localhost:5000/api/network-metrics
+curl http://localhost/api/network-metrics
 
 # Get service status
-curl http://localhost:5000/api/service-status
+curl http://localhost/api/service-status
 
 # Create alert
-curl -X POST http://localhost:5000/api/alerts \
+curl -X POST http://localhost/api/alerts \
   -H "Content-Type: application/json" \
   -d '{"base_station_id": 1, "severity": "warning", "message": "Test alert"}'
 ```
@@ -77,7 +79,7 @@ curl -X POST http://localhost:5000/api/alerts \
 
 ```bash
 # Query database
-docker-compose exec postgres psql -U telecom_user -d telecom_monitoring
+docker compose exec postgres psql -U telecom_user -d telecom_monitoring
 
 # In psql shell:
 SELECT * FROM base_stations;
@@ -91,10 +93,10 @@ SELECT * FROM alerts;
 
 ```bash
 # Stop all
-docker-compose down
+docker compose down
 
 # Remove data too (WARNING: deletes database)
-docker-compose down -v
+docker compose down -v
 ```
 
 ---
@@ -112,26 +114,26 @@ docker-compose down -v
 
 ### Services won't start?
 ```bash
-docker-compose logs
+docker compose logs
 # Check the error messages
 ```
 
 ### Can't access dashboard?
 ```bash
 # Ensure containers are running
-docker-compose ps
+docker compose ps
 
-# Check port 3000 is open
-curl http://localhost:3000
+# Check dashboard through Nginx
+curl http://localhost
 ```
 
 ### Database not initializing?
 ```bash
 # Check database logs
-docker-compose logs postgres
+docker compose logs postgres
 
 # Restart database
-docker-compose restart postgres
+docker compose restart postgres
 ```
 
 ---

@@ -19,25 +19,25 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Check if Docker Compose is installed
-docker-compose --version >nul 2>&1
+REM Check if Docker Compose plugin is installed
+docker compose version >nul 2>&1
 if errorlevel 1 (
-    echo ERROR: Docker Compose is not installed. Please install Docker Desktop first.
+    echo ERROR: Docker Compose plugin is not installed. Please install/update Docker Desktop.
     pause
     exit /b 1
 )
 
 echo Step 1: Checking prerequisites...
 docker --version
-docker-compose --version
+docker compose version
 echo.
 
 echo Step 2: Stopping any existing containers...
-docker-compose down
+docker compose down
 echo.
 
 echo Step 3: Building services (this may take several minutes)...
-docker-compose build
+docker compose build
 if errorlevel 1 (
     echo ERROR: Build failed
     pause
@@ -46,7 +46,7 @@ if errorlevel 1 (
 echo.
 
 echo Step 4: Starting services...
-docker-compose up -d
+docker compose up -d
 if errorlevel 1 (
     echo ERROR: Failed to start services
     pause
@@ -59,7 +59,7 @@ timeout /t 10 /nobreak
 echo.
 
 echo Step 6: Verifying services...
-docker-compose ps
+docker compose ps
 echo.
 
 echo ========================================
@@ -68,15 +68,16 @@ echo ========================================
 echo.
 
 echo Access Services:
-echo   Frontend Dashboard: http://localhost:3000
-echo   Backend API: http://localhost:5000
+echo   Frontend Dashboard ^(via Nginx^): http://localhost
+echo   Frontend ^(direct debug^): http://localhost:3001
+echo   Backend API ^(via Nginx^): http://localhost/api/health
 echo   Database: localhost:5432
 echo.
 
 echo Quick Commands:
-echo   View logs: docker-compose logs -f
-echo   Stop services: docker-compose down
-echo   Check status: docker-compose ps
+echo   View logs: docker compose logs -f
+echo   Stop services: docker compose down
+echo   Check status: docker compose ps
 echo.
 
 echo Documentation:

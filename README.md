@@ -35,7 +35,7 @@ This is a containerized Three-Tier Telecom Network Monitoring Dashboard that dem
 ## Getting Started
 
 ### Prerequisites
-- Docker and Docker Compose installed
+- Docker with Compose plugin installed
 - 4GB RAM minimum
 - Windows, macOS, or Linux
 
@@ -45,10 +45,10 @@ This is a containerized Three-Tier Telecom Network Monitoring Dashboard that dem
 cd Telco_Project
 
 # Build and start containers
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Access services
 # Dashboard via Nginx (recommended): http://localhost
@@ -59,10 +59,10 @@ docker-compose logs -f
 ### Stopping Services
 ```bash
 # Stop all containers
-docker-compose down
+docker compose down
 
 # Stop and remove volumes (WARNING: deletes data)
-docker-compose down -v
+docker compose down -v
 ```
 
 ## Project File Structure
@@ -183,21 +183,21 @@ docker ps
 
 ### View container logs
 ```bash
-docker-compose logs frontend
-docker-compose logs backend
-docker-compose logs nginx
-docker-compose logs postgres
+docker compose logs frontend
+docker compose logs backend
+docker compose logs nginx
+docker compose logs postgres
 ```
 
 ### Execute command in container
 ```bash
-docker-compose exec backend npm install
-docker-compose exec postgres psql -U telecom_user -d telecom_monitoring
+docker compose exec backend npm install
+docker compose exec postgres psql -U telecom_user -d telecom_monitoring
 ```
 
 ### Rebuild containers
 ```bash
-docker-compose build --no-cache
+docker compose build --no-cache
 ```
 
 ### Load balancing demo (frontend container visibility)
@@ -208,6 +208,12 @@ docker compose up -d --scale frontend=3
 # Open dashboard and refresh multiple times
 # The "Served by container" badge should change between container IDs
 ```
+
+### Load balancing test (backend via Nginx)
+
+For a full, step-by-step backend load-balancing validation guide (with test evidence screenshot reference), see:
+
+- **[LOAD_BALANCING_TEST_GUIDE.md](LOAD_BALANCING_TEST_GUIDE.md)**
 
 ## Key Metrics Monitored
 - Base station status (online/offline/maintenance)

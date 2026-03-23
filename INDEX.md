@@ -65,6 +65,7 @@
 - **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - Full deployment instructions
 - **[DOCKER_COMPOSE_SECURITY.md](DOCKER_COMPOSE_SECURITY.md)** - Docker Compose security notes
 - **[DOCKERFILE_IMPROVEMENTS.md](DOCKERFILE_IMPROVEMENTS.md)** - Dockerfile best practices
+- **[LOAD_BALANCING_TEST_GUIDE.md](LOAD_BALANCING_TEST_GUIDE.md)** - Backend load-balancing test steps + screenshot reference
 
 ---
 

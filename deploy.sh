@@ -22,49 +22,50 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-# Check if Docker Compose is installed
-if ! command -v docker-compose &> /dev/null; then
-    echo -e "${RED}Docker Compose is not installed. Please install Docker Compose first.${NC}"
+# Check if Docker Compose plugin is installed
+if ! docker compose version &> /dev/null; then
+    echo -e "${RED}Docker Compose (plugin) is not installed. Please install/update Docker Desktop or Docker Compose plugin first.${NC}"
     exit 1
 fi
 
 echo -e "${YELLOW}Step 1: Checking prerequisites...${NC}"
 docker --version
-docker-compose --version
+docker compose version
 
 echo -e "\n${YELLOW}Step 2: Stopping any existing containers...${NC}"
-docker-compose down || true
+docker compose down || true
 
 echo -e "\n${YELLOW}Step 3: Building services...${NC}"
-docker-compose build
+docker compose build
 
 echo -e "\n${YELLOW}Step 4: Starting services...${NC}"
-docker-compose up -d
+docker compose up -d
 
 echo -e "\n${YELLOW}Step 5: Waiting for services to be ready...${NC}"
 sleep 10
 
 echo -e "\n${YELLOW}Step 6: Verifying services...${NC}"
-docker-compose ps
+docker compose ps
 
 echo -e "\n${GREEN}========================================${NC}"
 echo -e "${GREEN}Services Status:${NC}"
 echo -e "${GREEN}========================================${NC}"
-docker-compose exec postgres pg_isready -U telecom_user || echo "PostgreSQL starting..."
+docker compose exec postgres pg_isready -U ${POSTGRES_USER:-telecom_user} || echo "PostgreSQL starting..."
 
 echo -e "\n${GREEN}========================================${NC}"
 echo -e "${GREEN}Deployment Complete!${NC}"
 echo -e "${GREEN}========================================${NC}"
 
 echo -e "\n${GREEN}Access Services:${NC}"
-echo -e "  Frontend Dashboard: ${YELLOW}http://localhost:3000${NC}"
-echo -e "  Backend API: ${YELLOW}http://localhost:5000${NC}"
+echo -e "  Frontend Dashboard (via Nginx): ${YELLOW}http://localhost${NC}"
+echo -e "  Frontend (direct debug): ${YELLOW}http://localhost:3001${NC}"
+echo -e "  Backend API (via Nginx): ${YELLOW}http://localhost/api/health${NC}"
 echo -e "  Database: ${YELLOW}localhost:5432${NC}"
 
 echo -e "\n${GREEN}Quick Commands:${NC}"
-echo -e "  View logs: ${YELLOW}docker-compose logs -f${NC}"
-echo -e "  Stop services: ${YELLOW}docker-compose down${NC}"
-echo -e "  Check status: ${YELLOW}docker-compose ps${NC}"
+echo -e "  View logs: ${YELLOW}docker compose logs -f${NC}"
+echo -e "  Stop services: ${YELLOW}docker compose down${NC}"
+echo -e "  Check status: ${YELLOW}docker compose ps${NC}"
 
 echo -e "\n${GREEN}Documentation:${NC}"
 echo -e "  Quick Start: ${YELLOW}cat QUICK_START.md${NC}"

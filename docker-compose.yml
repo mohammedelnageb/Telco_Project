@@ -1,14 +1,12 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database Service
   postgres:
     image: postgres:15-alpine
     container_name: telecom_postgres
     environment:
-      POSTGRES_USER: telecom_user
-      POSTGRES_PASSWORD: telecom_password
-      POSTGRES_DB: telecom_monitoring
+      POSTGRES_USER: ${POSTGRES_USER:-telecom_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-telecom_password}
+      POSTGRES_DB: ${POSTGRES_DB:-telecom_monitoring}
     # Avoid binding DB ports externally to protect data layer; only accessible from db_network.
     # ports:
     #   - "5432:5432"
@@ -16,22 +14,16 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U telecom_user -d telecom_monitoring"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-telecom_user} -d ${POSTGRES_DB:-telecom_monitoring}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - db_network
-    read_only: true
-    tmpfs:
-      - /tmp
-      - /var/tmp
+    # Postgres must write to /var/lib/postgresql/data and /var/run/postgresql during init/runtime.
+    # Keep filesystem writable for this service to avoid startup permission errors.
     security_opt:
       - no-new-privileges:true
-    cap_drop:
-      - ALL
-    cap_add:
-      - NET_BIND_SERVICE
 
   # Backend API Service
   backend:
@@ -39,23 +31,26 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
-      DB_USER: telecom_user
-      DB_PASSWORD: telecom_password
+      DB_USER: ${POSTGRES_USER:-telecom_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-telecom_password}
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: telecom_monitoring
+      DB_NAME: ${POSTGRES_DB:-telecom_monitoring}
       PORT: 5000
     expose:
       - "5000"
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
     networks:
       - telecom_network
       - db_network
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:5000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     restart: unless-stopped
     read_only: true
     tmpfs:
@@ -73,17 +68,20 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: telecom_frontend
     environment:
       BACKEND_API_URL: http://nginx
       PORT: 3000
     ports:
       - "3001:3000"
     depends_on:
-      - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     networks:
       - telecom_network
     restart: unless-stopped
@@ -105,10 +103,18 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - frontend
-      - backend
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     networks:
       - telecom_network
     restart: unless-stopped
@@ -123,11 +129,11 @@ services:
       dockerfile: Dockerfile.updater
     container_name: telecom_data_updater
     environment:
-      DB_USER: telecom_user
-      DB_PASSWORD: telecom_password
+      DB_USER: ${POSTGRES_USER:-telecom_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-telecom_password}
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: telecom_monitoring
+      DB_NAME: ${POSTGRES_DB:-telecom_monitoring}
     depends_on:
       postgres:
         condition: service_healthy

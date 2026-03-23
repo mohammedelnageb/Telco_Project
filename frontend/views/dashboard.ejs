@@ -15,6 +15,10 @@
                 <span class="lb-label">Served by container:</span>
                 <span id="frontendContainer" class="lb-container"><%= frontendContainer %></span>
             </div>
+            <div class="lb-indicator">
+                <span class="lb-label">Backend container:</span>
+                <span id="backendContainer" class="lb-container">loading...</span>
+            </div>
         </header>
 
         <div class="dashboard">
@@ -164,6 +168,12 @@
 
             const containerBadge = document.getElementById('frontendContainer');
             containerBadge.textContent = servingContainer;
+
+            const backendServingContainer = response.headers.get('X-Backend-Container');
+            if (backendServingContainer) {
+                const backendBadge = document.getElementById('backendContainer');
+                backendBadge.textContent = backendServingContainer;
+            }
         }
 
         // Load all data on page load

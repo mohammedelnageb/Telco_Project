@@ -11,6 +11,12 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+// Expose backend container handling each request (useful for load-balancing demos)
+app.use((req, res, next) => {
+  res.setHeader('X-Backend-Container', os.hostname());
+  next();
+});
+
 // PostgreSQL Connection Pool
 const pool = new Pool({
   user: process.env.DB_USER || 'telecom_user',

@@ -40,6 +40,10 @@ app.get('/', (req, res) => {
 app.get('/api/proxy/base-stations', async (req, res) => {
   try {
     const response = await require('axios').get(`${backendAPI}/api/base-stations`);
+    const backendContainer = response.headers['x-backend-container'];
+    if (backendContainer) {
+      res.setHeader('X-Backend-Container', backendContainer);
+    }
     res.json(response.data);
   } catch (err) {
     console.error('Backend error:', err.message);
@@ -50,6 +54,10 @@ app.get('/api/proxy/base-stations', async (req, res) => {
 app.get('/api/proxy/network-metrics', async (req, res) => {
   try {
     const response = await require('axios').get(`${backendAPI}/api/network-metrics`);
+    const backendContainer = response.headers['x-backend-container'];
+    if (backendContainer) {
+      res.setHeader('X-Backend-Container', backendContainer);
+    }
     res.json(response.data);
   } catch (err) {
     console.error('Backend error:', err.message);
@@ -60,6 +68,10 @@ app.get('/api/proxy/network-metrics', async (req, res) => {
 app.get('/api/proxy/alerts', async (req, res) => {
   try {
     const response = await require('axios').get(`${backendAPI}/api/alerts`);
+    const backendContainer = response.headers['x-backend-container'];
+    if (backendContainer) {
+      res.setHeader('X-Backend-Container', backendContainer);
+    }
     res.json(response.data);
   } catch (err) {
     console.error('Backend error:', err.message);
@@ -70,6 +82,10 @@ app.get('/api/proxy/alerts', async (req, res) => {
 app.get('/api/proxy/service-status', async (req, res) => {
   try {
     const response = await require('axios').get(`${backendAPI}/api/service-status`);
+    const backendContainer = response.headers['x-backend-container'];
+    if (backendContainer) {
+      res.setHeader('X-Backend-Container', backendContainer);
+    }
     res.json(response.data);
   } catch (err) {
     console.error('Backend error:', err.message);

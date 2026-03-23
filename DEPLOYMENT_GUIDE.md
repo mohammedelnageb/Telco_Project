@@ -18,7 +18,7 @@
 
 ### Required Software
 - Docker (20.10 or higher)
-- Docker Compose (2.0 or higher)
+- Docker Compose plugin (2.0 or higher)
 - Git
 - Text Editor or IDE
 
@@ -33,20 +33,20 @@ choco install docker-desktop
 
 # Verify installation
 docker --version
-docker-compose --version
+docker compose version
 ```
 
 #### macOS
 ```bash
 # Install Docker Desktop
 brew install docker
-brew install docker-compose
+brew install docker compose
 
 # Or download from https://www.docker.com/products/docker-desktop
 
 # Verify installation
 docker --version
-docker-compose --version
+docker compose version
 ```
 
 #### Linux (Ubuntu/Debian)
@@ -54,7 +54,7 @@ docker-compose --version
 # Install Docker
 sudo apt-get update
 sudo apt-get install docker.io
-sudo apt-get install docker-compose
+sudo apt-get install docker compose
 
 # Add current user to docker group
 sudo usermod -aG docker $USER
@@ -62,7 +62,7 @@ newgrp docker
 
 # Verify installation
 docker --version
-docker-compose --version
+docker compose version
 ```
 
 ---
@@ -76,7 +76,7 @@ cd /path/to/Telco_Project
 ls -la
 
 # Expected structure:
-# docker-compose.yml
+# docker compose.yml
 # frontend/
 # backend/
 # database/
@@ -90,7 +90,7 @@ ls -la
 ls frontend/Dockerfile
 ls backend/Dockerfile
 ls database/init.sql
-ls docker-compose.yml
+ls docker compose.yml
 
 # All should exist
 ```
@@ -129,7 +129,7 @@ These are already configured in the project directories.
 cd Telco_Project
 
 # Build all services (this may take 5-10 minutes)
-docker-compose build
+docker compose build
 
 # View build output
 # Should complete without errors
@@ -138,13 +138,13 @@ docker-compose build
 #### Rebuild Specific Service
 ```bash
 # Rebuild only backend
-docker-compose build backend
+docker compose build backend
 
 # Rebuild only frontend
-docker-compose build frontend
+docker compose build frontend
 
 # Rebuild without cache
-docker-compose build --no-cache
+docker compose build --no-cache
 ```
 
 ### Start Services
@@ -152,7 +152,7 @@ docker-compose build --no-cache
 #### Start in Background
 ```bash
 # Start all services
-docker-compose up -d
+docker compose up -d
 
 # Expected output:
 # Creating telecom_postgres ... done
@@ -163,7 +163,7 @@ docker-compose up -d
 #### Start with Logs Visible
 ```bash
 # Start and view logs
-docker-compose up
+docker compose up
 
 # Press Ctrl+C to stop and see logs
 ```
@@ -171,13 +171,13 @@ docker-compose up
 #### Start Specific Services
 ```bash
 # Start only database
-docker-compose up -d postgres
+docker compose up -d postgres
 
 # Start backend and database
-docker-compose up -d postgres backend
+docker compose up -d postgres backend
 
 # Then start frontend
-docker-compose up -d frontend
+docker compose up -d frontend
 ```
 
 ### Monitor Services
@@ -185,7 +185,7 @@ docker-compose up -d frontend
 #### Check Service Status
 ```bash
 # View all running containers
-docker-compose ps
+docker compose ps
 
 # Expected output:
 # NAME                COMMAND             STATUS
@@ -198,21 +198,21 @@ docker-compose ps
 
 ```bash
 # View all logs
-docker-compose logs
+docker compose logs
 
 # Follow logs in real-time
-docker-compose logs -f
+docker compose logs -f
 
 # View specific service logs
-docker-compose logs backend
-docker-compose logs frontend
-docker-compose logs postgres
+docker compose logs backend
+docker compose logs frontend
+docker compose logs postgres
 
 # View last 50 lines
-docker-compose logs --tail=50
+docker compose logs --tail=50
 
 # View logs from last 10 minutes
-docker-compose logs --since=10m
+docker compose logs --since=10m
 ```
 
 #### Monitor Resource Usage
@@ -229,40 +229,41 @@ docker stats telecom_backend telecom_frontend
 ## Services Access
 
 ### Frontend Dashboard
-- **URL**: http://localhost:3000
-- **Port**: 3000
+- **URL (recommended)**: http://localhost
+- **Direct frontend debug URL**: http://localhost:3001
+- **Port**: 80 (through Nginx)
 - **Description**: Monitoring dashboard UI
 
 **Access a**
 - Open browser
-- Navigate to http://localhost:3000
+- Navigate to http://localhost
 - See real-time monitoring data
 
 ### Backend API
 
-- **Base URL**: http://localhost:5000
-- **Port**: 5000
+- **Base URL (via Nginx)**: http://localhost/api
+- **Port**: 80 (through Nginx)
 
 #### API Endpoints
 
 ```bash
 # Health Check
-curl http://localhost:5000/api/health
+curl http://localhost/api/health
 
 # Get Base Stations
-curl http://localhost:5000/api/base-stations
+curl http://localhost/api/base-stations
 
 # Get Network Metrics
-curl http://localhost:5000/api/network-metrics
+curl http://localhost/api/network-metrics
 
 # Get Alerts
-curl http://localhost:5000/api/alerts
+curl http://localhost/api/alerts
 
 # Get Service Status
-curl http://localhost:5000/api/service-status
+curl http://localhost/api/service-status
 
 # Create Alert (POST)
-curl -X POST http://localhost:5000/api/alerts \
+curl -X POST http://localhost/api/alerts \
   -H "Content-Type: application/json" \
   -d '{
     "base_station_id": 1,
@@ -287,7 +288,7 @@ curl -X POST http://localhost:5000/api/alerts \
 psql -h localhost -U telecom_user -d telecom_monitoring
 
 # Within Docker container
-docker-compose exec postgres psql -U telecom_user -d telecom_monitoring
+docker compose exec postgres psql -U telecom_user -d telecom_monitoring
 
 # Common SQL commands
 \dt                 # List tables
@@ -304,43 +305,43 @@ SELECT * FROM alerts;
 
 ```bash
 # Backup to file
-docker-compose exec postgresql pg_dump -U telecom_user telecom_monitoring > backup.sql
+docker compose exec postgresql pg_dump -U telecom_user telecom_monitoring > backup.sql
 
 # Backup with compression
-docker-compose exec postgres pg_dump -U telecom_user telecom_monitoring | gzip > backup.sql.gz
+docker compose exec postgres pg_dump -U telecom_user telecom_monitoring | gzip > backup.sql.gz
 ```
 
 ### Restore Database
 
 ```bash
 # Restore from backup
-docker-compose exec -T postgres psql -U telecom_user telecom_monitoring < backup.sql
+docker compose exec -T postgres psql -U telecom_user telecom_monitoring < backup.sql
 
 # Restore from compressed backup
-gunzip < backup.sql.gz | docker-compose exec -T postgres psql -U telecom_user telecom_monitoring
+gunzip < backup.sql.gz | docker compose exec -T postgres psql -U telecom_user telecom_monitoring
 ```
 
 ### Reset Database
 
 ```bash
 # Stop services
-docker-compose down
+docker compose down
 
 # Remove database volume (WARNING: deletes all data)
 docker volume rm Telco_Project_postgres_data
 
 # Start services (database will reinitialize)
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Query Database
 
 ```bash
 # Execute SQL query
-docker-compose exec postgres psql -U telecom_user -d telecom_monitoring -c "SELECT * FROM base_stations;"
+docker compose exec postgres psql -U telecom_user -d telecom_monitoring -c "SELECT * FROM base_stations;"
 
 # Run SQL file
-docker-compose exec postgres psql -U telecom_user -d telecom_monitoring < query.sql
+docker compose exec postgres psql -U telecom_user -d telecom_monitoring < query.sql
 ```
 
 ---
@@ -351,19 +352,19 @@ docker-compose exec postgres psql -U telecom_user -d telecom_monitoring < query.
 
 ```bash
 # Stop all services (keeps containers)
-docker-compose stop
+docker compose stop
 
 # Stop specific service
-docker-compose stop backend
+docker compose stop backend
 
 # Remove containers
-docker-compose down
+docker compose down
 
 # Remove containers and volumes (WARNING: deletes data)
-docker-compose down -v
+docker compose down -v
 
 # Remove everything including images
-docker-compose down -v --remove-orphans --rmi all
+docker compose down -v --remove-orphans --rmi all
 ```
 
 ### Clean Up
@@ -392,28 +393,28 @@ docker system prune
 # 1. Edit frontend code
 # 2. Edit backend code
 # 3. Restart services
-docker-compose restart
+docker compose restart
 
 # View changes
-docker-compose logs -f
+docker compose logs -f
 
 # Or rebuild if package.json changed
-docker-compose down
-docker-compose build
-docker-compose up -d
+docker compose down
+docker compose build
+docker compose up -d
 ```
 
 ### Testing Changes
 
 ```bash
 # Terminal 1: View logs
-docker-compose logs -f backend
+docker compose logs -f backend
 
 # Terminal 2: Make requests
-curl http://localhost:5000/api/base-stations
+curl http://localhost/api/base-stations
 
 # Terminal 3: Check database
-docker-compose exec postgres psql -U telecom_user -d telecom_monitoring \
+docker compose exec postgres psql -U telecom_user -d telecom_monitoring \
   -c "SELECT * FROM base_stations;"
 ```
 
@@ -421,16 +422,16 @@ docker-compose exec postgres psql -U telecom_user -d telecom_monitoring \
 
 ```bash
 # Access backend container shell
-docker-compose exec backend sh
+docker compose exec backend sh
 
 # View backend files
-docker-compose exec backend ls -la
+docker compose exec backend ls -la
 
 # Check node version
-docker-compose exec backend node --version
+docker compose exec backend node --version
 
 # Install additional dependencies
-docker-compose exec backend npm install packagename
+docker compose exec backend npm install packagename
 ```
 
 ---
@@ -459,7 +460,7 @@ NODE_ENV=production
 
 ### Docker Compose Production Override
 
-Create `docker-compose.production.yml`:
+Create `docker compose.production.yml`:
 
 ```yaml
 version: '3.8'
@@ -482,20 +483,20 @@ services:
 
 Deploy with:
 ```bash
-docker-compose -f docker-compose.yml -f docker-compose.production.yml up -d
+docker compose -f docker compose.yml -f docker compose.production.yml up -d
 ```
 
 ### Monitoring and Logging
 
 ```bash
 # Configure logging driver
-docker-compose logs --driver json-file
+docker compose logs --driver json-file
 
 # Export logs
-docker-compose logs --timestamps > deployment.log
+docker compose logs --timestamps > deployment.log
 
 # Monitor in real-time
-watch docker-compose ps
+watch docker compose ps
 ```
 
 ---
@@ -506,28 +507,28 @@ watch docker-compose ps
 
 ```bash
 # Check logs
-docker-compose logs
+docker compose logs
 
 # Check specific service
-docker-compose logs backend
+docker compose logs backend
 
 # Rebuild and restart
-docker-compose down
-docker-compose build --no-cache
-docker-compose up -d
+docker compose down
+docker compose build --no-cache
+docker compose up -d
 ```
 
 ### Database Connection Issues
 
 ```bash
 # Test database connectivity
-docker-compose exec backend curl postgres:5432
+docker compose exec backend curl postgres:5432
 
 # Check database logs
-docker-compose logs postgres
+docker compose logs postgres
 
 # Verify database status
-docker-compose exec postgres pg_isready -U telecom_user
+docker compose exec postgres pg_isready -U telecom_user
 ```
 
 ### Port Already in Use
@@ -537,8 +538,8 @@ docker-compose exec postgres pg_isready -U telecom_user
 netstat -ano | findstr :3000  # Windows
 lsof -i :3000                  # macOS/Linux
 
-# Change docker-compose port mapping
-# Modify docker-compose.yml:
+# Change docker compose port mapping
+# Modify docker compose.yml:
 # frontend:
 #   ports:
 #     - "3001:3000"
@@ -560,7 +561,7 @@ docker image prune -a
 
 ### Increase Resource Limits
 
-Edit `docker-compose.yml`:
+Edit `docker compose.yml`:
 
 ```yaml
 services:
@@ -577,7 +578,7 @@ services:
 ```bash
 # Docker layer caching already enabled
 # To force rebuild without cache:
-docker-compose build --no-cache
+docker compose build --no-cache
 ```
 
 ### Monitor Performance
@@ -604,8 +605,8 @@ docker stats --no-stream > metrics.txt
 ## Support
 
 For issues or questions:
-1. Check logs: `docker-compose logs`
-2. Verify services: `docker-compose ps`
+1. Check logs: `docker compose logs`
+2. Verify services: `docker compose ps`
 3. Test connectivity: `docker network inspect`
 4. Review project README.md
 
