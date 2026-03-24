@@ -231,35 +231,35 @@ For a full, step-by-step backend load-balancing validation guide (with test evid
 5. Add monitoring with Prometheus and Grafana
 6. Implement CI/CD pipeline
 
-## Team Objectives Distribution
+## some objectives we can use to enhance your Project Security and reduce size
 
-### Objective 1 - Container Image Size Optimization (Team A)
+### Objective 1 - Container Image Size Optimization -> which we used in our project
 - Reduce Alpine-based images from ~150MB to <100MB
 - Use .dockerignore files
 - Minimize npm dependencies
 
-### Objective 2 - Container Image Security (Team B)
+### Objective 2 - Container Image Security 
 - Implement vulnerability scanning
 - Run containers as non-root users
 - Use security scanning tools (trivy, snyk)
 
-### Objective 3 - Docker Compose Security (Team C)
+### Objective 3 - Docker Compose Security 
 - Add resource limits
 - Implement proper network policies
 - Add read-only filesystems where possible
 
-### Objective 4 - Secret Management (Team D)
+### Objective 4 - Secret Management 
 - Integrate HashiCorp Vault
 - Replace environment variables with Vault secrets
 - Implement dynamic secret rotation
 
-### Objective 5 - Secure Image Distribution (Team E)
+### Objective 5 - Secure Image Distribution 
 - Set up private Docker registry
 - Implement Docker registry authentication
 - Push and pull images from private registry
 
 ## Contact & Support
-Author: Mohammed Ahmed Ali
+Author: Mohammed Ahmed  , MAhmoud Ashraf , Ibrahim Samy
 Course: Docker
 Institution: [ITI]
 
