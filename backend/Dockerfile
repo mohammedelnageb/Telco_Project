@@ -23,8 +23,6 @@ RUN addgroup -g 1001 -S appgroup && \
 COPY --from=builder /app/package*.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=builder /app/server.js ./
-COPY --from=builder /app/models ./models
-COPY --from=builder /app/routes ./routes
 RUN chown -R appuser:appgroup /app
 USER appuser
 
